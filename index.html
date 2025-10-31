@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rug Tribunal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5 url('background.png') center/cover no-repeat fixed;
+            color: #3f3f3f;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .logo {
+            width: 200px;
+            height: 200px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 15px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #888;
+            letter-spacing: 1px;
+            font-style: italic;
+        }
+
+        .twitter-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #666;
+            text-decoration: none;
+            padding: 5px 12px;
+            border: 1px solid #333;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+
+        .twitter-link:hover {
+            color: #fff;
+            border-color: #666;
+        }
+
+        .system-message {
+            text-align: center;
+            font-size: 11px;
+            color: #555;
+            letter-spacing: 1px;
+            margin: 15px 0;
+            padding: 8px;
+            border: 1px solid #222;
+            background: rgba(0, 0, 0, 0.5);
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .countdown-section {
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+            border: 2px solid #444;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .countdown-title {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .countdown-timer {
+            font-size: 32px;
+            color: #fff;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .phase-indicator {
+            text-align: center;
+            font-size: 14px;
+            color: #999;
+            margin: 15px 0;
+            padding: 12px;
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+            letter-spacing: 1px;
+        }
+
+        .stats {
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            margin: 10px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .wallets-section {
+            width: 100%;
+            max-width: 1400px;
+            margin: 15px 0;
+        }
+
+        .wallets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+            padding: 10px 0;
+        }
+
+        .wallet-card {
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #333;
+            padding: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wallet-card:hover {
+            border-color: #555;
+            background: rgba(30, 30, 30, 0.9);
+        }
+
+        .wallet-card.accused {
+            border-color: #aa3333;
+            background: rgba(40, 20, 20, 0.9);
+        }
+
+        .wallet-card.guilty {
+            border-color: #ff0000;
+            background: rgba(60, 10, 10, 0.9);
+        }
+
+        .wallet-card.innocent {
+            border-color: #33aa33;
+            background: rgba(20, 40, 20, 0.9);
+        }
+
+        .wallet-card.voted {
+            opacity: 0.7;
+        }
+
+        .wallet-address {
+            font-size: 11px;
+            color: #fff;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+            word-break: break-all;
+        }
+
+        .wallet-status {
+            font-size: 9px;
+            color: #888;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .wallet-status.under-investigation {
+            color: #ff9933;
+        }
+
+        .wallet-status.verdict-guilty {
+            color: #ff3333;
+        }
+
+        .wallet-status.verdict-innocent {
+            color: #33ff33;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #555;
+            background: rgba(30, 30, 30, 0.9);
+            color: #999;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            margin-top: 5px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: rgba(50, 50, 50, 0.9);
+            color: #fff;
+            border-color: #888;
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn-accuse {
+            border-color: #aa3333;
+        }
+
+        .btn-accuse:hover:not(:disabled) {
+            border-color: #ff3333;
+            color: #ff3333;
+        }
+
+        .btn-guilty {
+            border-color: #aa3333;
+        }
+
+        .btn-guilty:hover:not(:disabled) {
+            background: rgba(60, 20, 20, 0.9);
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+
+        .btn-innocent {
+            border-color: #33aa33;
+        }
+
+        .btn-innocent:hover:not(:disabled) {
+            background: rgba(20, 60, 20, 0.9);
+            border-color: #33ff33;
+            color: #33ff33;
+        }
+
+        .voting-message {
+            text-align: center;
+            padding: 40px;
+            margin: 30px 0;
+            border: 2px solid #666;
+            background: rgba(0, 0, 0, 0.8);
+            white-space: pre-line;
+            font-size: 16px;
+            line-height: 2;
+            color: #aaa;
+            letter-spacing: 1px;
+        }
+
+        .verdict-tax {
+            margin-top: 8px;
+            font-size: 9px;
+            color: #ff6666;
+            letter-spacing: 0.5px;
+            line-height: 1.4;
+        }
+
+        .reward-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #33aa33;
+            padding: 50px;
+            z-index: 100;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(51, 170, 51, 0.5);
+            display: none;
+            max-width: 500px;
+        }
+
+        .reward-modal.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .reward-title {
+            font-size: 24px;
+            color: #33ff33;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .reward-message {
+            font-size: 16px;
+            color: #aaa;
+            line-height: 1.8;
+            letter-spacing: 1px;
+        }
+
+        .close-reward {
+            margin-top: 30px;
+            width: auto;
+            padding: 10px 30px;
+        }
+
+        .vote-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .vote-buttons .btn {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="container">
+        <img src="WE DGAF IF THERE IS NO VOLUME (2).png" alt="Rug Tribunal" class="logo">
+        
+        <div class="header">
+            <h1 class="title">RUG TRIBUNAL</h1>
+            <p class="subtitle">Every wallet is guilty until proven based.</p>
+            <a href="https://x.com/RugTribunalSol" target="_blank" class="twitter-link">@RugTribunalSol</a>
+        </div>
+
+        <div class="system-message" id="systemMessage">
+            The court is observing...
+        </div>
+
+        <div class="countdown-section" id="countdownSection">
+            <div class="countdown-title">TRIBUNAL CONVENES IN</div>
+            <div class="countdown-timer" id="countdownTimer">10:00</div>
+        </div>
+
+        <div class="phase-indicator" id="phaseIndicator">
+            PHASE I: IDENTIFICATION OF SUSPECTS
+        </div>
+
+        <div class="stats" id="stats"></div>
+
+        <div id="votingMessage"></div>
+
+        <div class="wallets-section">
+            <div class="wallets-grid" id="walletsGrid"></div>
+        </div>
+    </div>
+
+    <div class="reward-modal" id="rewardModal">
+        <div class="reward-title">VERDICT ALIGNED</div>
+        <div class="reward-message">
+            Your judgment was sound.<br>
+            You have earned a share of the Creator's Balance.<br><br>
+            The Tribunal recognizes your wisdom.
+        </div>
+        <button class="btn close-reward" onclick="closeReward()">ACKNOWLEDGED</button>
+    </div>
+
+    <script>
+        const TRIAL_START_KEY = 'rugTribunal_trialStart';
+        const ACCUSATIONS_KEY = 'rugTribunal_accusations';
+        const VOTES_KEY = 'rugTribunal_votes';
+        const VERDICTS_KEY = 'rugTribunal_verdicts';
+        const TRIAL_DURATION = 10 * 60 * 1000;
+
+        const systemMessages = [
+            'The court is observing...',
+            'Evidence gathering in progress...',
+            'Guilty until proven otherwise.',
+            'The chain never forgets.',
+            'Justice is immutable.',
+            'All transactions are transparent.',
+            'The Tribunal sees all...',
+            'No wallet is above judgment.',
+            'The ledger reveals truth.'
+        ];
+
+        let currentPhase = 'accusation';
+        let trialStartTime;
+        let accusations = {};
+        let votes = {};
+        let verdicts = {};
+        let wallets = [];
+
+        function generateWallets() {
+            const chars = '0123456789ABCDEF';
+            const wallets = [];
+            
+            for (let i = 0; i < 200; i++) {
+                let prefix = '';
+                let suffix = '';
+                
+                for (let j = 0; j < 4; j++) {
+                    prefix += chars[Math.floor(Math.random() * chars.length)];
+                    suffix += chars[Math.floor(Math.random() * chars.length)];
+                }
+                
+                wallets.push({
+                    id: i + 1,
+                    address: `Wallet #${prefix}...${suffix}`
+                });
+            }
+            
+            return wallets;
+        }
+
+        function initTrial() {
+            wallets = generateWallets();
+            
+            const stored = localStorage.getItem(TRIAL_START_KEY);
+            if (stored) {
+                trialStartTime = parseInt(stored);
+            } else {
+                trialStartTime = Date.now();
+                localStorage.setItem(TRIAL_START_KEY, trialStartTime.toString());
+            }
+
+            const storedAccusations = localStorage.getItem(ACCUSATIONS_KEY);
+            if (storedAccusations) {
+                accusations = JSON.parse(storedAccusations);
+            }
+
+            const storedVotes = localStorage.getItem(VOTES_KEY);
+            if (storedVotes) {
+                votes = JSON.parse(storedVotes);
+            }
+
+            const storedVerdicts = localStorage.getItem(VERDICTS_KEY);
+            if (storedVerdicts) {
+                verdicts = JSON.parse(storedVerdicts);
+            }
+
+            updateCountdown();
+            renderWallets();
+            updateStats();
+            rotateSystemMessage();
+        }
+
+        function updateCountdown() {
+            const now = Date.now();
+            const elapsed = now - trialStartTime;
+            const remaining = TRIAL_DURATION - elapsed;
+
+            if (remaining <= 0) {
+                if (currentPhase === 'accusation') {
+                    enterVotingPhase();
+                }
+                return;
+            }
+
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            const display = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            document.getElementById('countdownTimer').textContent = display;
+            setTimeout(updateCountdown, 1000);
+        }
+
+        function enterVotingPhase() {
+            currentPhase = 'voting';
+            document.getElementById('countdownSection').style.display = 'none';
+            document.getElementById('phaseIndicator').textContent = 'PHASE II: THE JURY DELIBERATES';
+            
+            const votingMsg = document.getElementById('votingMessage');
+            votingMsg.className = 'voting-message';
+            votingMsg.textContent = `The Tribunal has convened.
+Cast your vote wisely.
+The guilty will pay, the memes will live.`;
+            
+            renderWallets();
+            updateStats();
+        }
+
+        function renderWallets() {
+            const grid = document.getElementById('walletsGrid');
+            grid.innerHTML = '';
+
+            wallets.forEach(wallet => {
+                const isAccused = accusations[wallet.id];
+                const hasVerdict = verdicts[wallet.id];
+                const hasVoted = votes[wallet.id];
+                
+                const card = document.createElement('div');
+                card.className = 'wallet-card';
+                
+                if (hasVerdict) {
+                    card.classList.add(verdicts[wallet.id]);
+                } else if (isAccused) {
+                    card.classList.add('accused');
+                }
+                
+                if (hasVoted && currentPhase === 'voting') {
+                    card.classList.add('voted');
+                }
+
+                let statusText = 'Active';
+                let statusClass = '';
+                if (hasVerdict) {
+                    statusText = verdicts[wallet.id] === 'guilty' ? 'GUILTY' : 'INNOCENT';
+                    statusClass = `verdict-${verdicts[wallet.id]}`;
+                } else if (isAccused) {
+                    statusText = 'Under Investigation';
+                    statusClass = 'under-investigation';
+                }
+
+                let buttons = '';
+                
+                if (currentPhase === 'accusation' && !isAccused && !hasVerdict) {
+                    buttons = `<button class="btn btn-accuse" onclick="accuseWallet(${wallet.id})">ACCUSE</button>`;
+                } else if (currentPhase === 'voting' && isAccused && !hasVoted && !hasVerdict) {
+                    buttons = `
+                        <div class="vote-buttons">
+                            <button class="btn btn-guilty" onclick="castVote(${wallet.id}, 'guilty')">GUILTY</button>
+                            <button class="btn btn-innocent" onclick="castVote(${wallet.id}, 'innocent')">INNOCENT</button>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="wallet-address">${wallet.address}</div>
+                    <div class="wallet-status ${statusClass}">${statusText}</div>
+                    ${hasVerdict && verdicts[wallet.id] === 'guilty' ? 
+                        '<div class="verdict-tax">Tax imposed — proceeds to Meme Fund</div>' : ''}
+                    ${buttons}
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        function updateStats() {
+            const accusedCount = Object.keys(accusations).length;
+            const votedCount = Object.keys(votes).length;
+            const guiltyCount = Object.values(verdicts).filter(v => v === 'guilty').length;
+            const innocentCount = Object.values(verdicts).filter(v => v === 'innocent').length;
+            
+            let statsText = `Total Holders: ${wallets.length} | Accused: ${accusedCount}`;
+            
+            if (currentPhase === 'voting') {
+                statsText += ` | Votes Cast: ${votedCount}/${accusedCount}`;
+            } else if (currentPhase === 'verdict') {
+                statsText += ` | Guilty: ${guiltyCount} | Innocent: ${innocentCount}`;
+            }
+            
+            document.getElementById('stats').textContent = statsText;
+        }
+
+        function accuseWallet(walletId) {
+            accusations[walletId] = true;
+            localStorage.setItem(ACCUSATIONS_KEY, JSON.stringify(accusations));
+            renderWallets();
+            updateStats();
+        }
+
+        function castVote(walletId, verdict) {
+            votes[walletId] = verdict;
+            localStorage.setItem(VOTES_KEY, JSON.stringify(votes));
+            renderWallets();
+            updateStats();
+            checkIfAllVoted();
+        }
+
+        function checkIfAllVoted() {
+            if (currentPhase !== 'voting') return;
+
+            const accusedWallets = Object.keys(accusations);
+            const votedWallets = Object.keys(votes);
+
+            if (accusedWallets.length > 0 && accusedWallets.every(id => votes[id])) {
+                setTimeout(revealVerdicts, 2000);
+            }
+        }
+
+        function revealVerdicts() {
+            currentPhase = 'verdict';
+            document.getElementById('phaseIndicator').textContent = 'PHASE III: VERDICT DELIVERY';
+            document.getElementById('votingMessage').style.display = 'none';
+
+            let correctVotes = 0;
+            let totalVotes = 0;
+
+            Object.keys(accusations).forEach(walletId => {
+                const randomVerdict = Math.random() > 0.5 ? 'guilty' : 'innocent';
+                verdicts[walletId] = randomVerdict;
+                
+                if (votes[walletId]) {
+                    totalVotes++;
+                    if (votes[walletId] === randomVerdict) {
+                        correctVotes++;
+                    }
+                }
+            });
+
+            localStorage.setItem(VERDICTS_KEY, JSON.stringify(verdicts));
+            renderWallets();
+            updateStats();
+
+            if (totalVotes > 0 && correctVotes / totalVotes >= 0.5) {
+                setTimeout(() => {
+                    document.getElementById('rewardModal').classList.add('show');
+                }, 1500);
+            }
+        }
+
+        function closeReward() {
+            document.getElementById('rewardModal').classList.remove('show');
+        }
+
+        function rotateSystemMessage() {
+            const msgEl = document.getElementById('systemMessage');
+            let index = 0;
+            
+            setInterval(() => {
+                index = (index + 1) % systemMessages.length;
+                msgEl.textContent = systemMessages[index];
+            }, 5000);
+        }
+
+        initTrial();
+    </script>
+</body>
+</html>
